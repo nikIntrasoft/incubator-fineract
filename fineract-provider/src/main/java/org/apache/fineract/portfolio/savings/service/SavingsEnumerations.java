@@ -193,6 +193,11 @@ public class SavingsEnumerations {
                 optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.ESCHEAT.getValue().longValue(),
                         SavingsAccountTransactionType.ESCHEAT.getCode(), "Escheat");
                 break;
+                
+            case LOAN_DISBURSEMENT:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.ESCHEAT.getValue().longValue(),
+                        SavingsAccountTransactionType.LOAN_DISBURSEMENT.getCode(), "Loan Disbursement");
+                break;
         }
         return optionData;
     }
