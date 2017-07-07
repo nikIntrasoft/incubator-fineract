@@ -45,6 +45,9 @@ public class SavingsAccountTransactionEnumData {
     private final boolean withholdTax;
     private final boolean escheat;
     private final boolean loanDisbursement;
+    private final boolean amountHold;
+    private final boolean amountRelease;
+
 
     public SavingsAccountTransactionEnumData(final Long id, final String code, final String value) {
         this.id = id;
@@ -65,7 +68,10 @@ public class SavingsAccountTransactionEnumData {
         this.overdraftInterest = Long.valueOf(SavingsAccountTransactionType.OVERDRAFT_INTEREST.getValue()).equals(this.id);
         this.withholdTax = Long.valueOf(SavingsAccountTransactionType.WITHHOLD_TAX.getValue()).equals(this.id);
         this.escheat = Long.valueOf(SavingsAccountTransactionType.ESCHEAT.getValue()).equals(this.id);
-        this.loanDisbursement=Long.valueOf(SavingsAccountTransactionType.LOAN_DISBURSEMENT.getValue()).equals(this.id);
+       this.loanDisbursement=Long.valueOf(SavingsAccountTransactionType.LOAN_DISBURSEMENT.getValue()).equals(this.id);
+        this.amountHold = Long.valueOf(SavingsAccountTransactionType.AMOUNT_HOLD.getValue()).equals(this.id);
+        this.amountRelease = Long.valueOf(SavingsAccountTransactionType.AMOUNT_RELEASE.getValue()).equals(this.id);
+
         // this.overdraftFee =
         // Long.valueOf(SavingsAccountTransactionType.OVERDRAFT_INTEREST.getValue()).equals(this.id);
     }
@@ -144,6 +150,14 @@ public class SavingsAccountTransactionEnumData {
     
     public boolean isEscheat() {
     	return this.escheat;
+    }
+    
+    public boolean isAmountOnHold() {
+        return this.amountHold;
+    }
+
+    public boolean isAmountRelease() {
+        return this.amountRelease;
     }
 
 }
