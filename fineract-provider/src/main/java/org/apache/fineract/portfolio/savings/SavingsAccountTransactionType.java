@@ -41,7 +41,9 @@ public enum SavingsAccountTransactionType {
     REJECT_TRANSFER(15, "savingsAccountTransactionType.rejectTransfer"), WRITTEN_OFF(16, "savingsAccountTransactionType.writtenoff"), //
     OVERDRAFT_INTEREST(17, "savingsAccountTransactionType.overdraftInterest"), //
     WITHHOLD_TAX(18, "savingsAccountTransactionType.withholdTax"),
-    ESCHEAT(19, "savingsAccountTransactionType.escheat");
+    ESCHEAT(19, "savingsAccountTransactionType.escheat"),
+	LOAN_DISBURSEMENT(22, "savingsAccountTransactionType.loanDisbursement");
+	
 
     private final Integer value;
     private final String code;
@@ -113,12 +115,19 @@ public enum SavingsAccountTransactionType {
             case 19:
             	savingsAccountTransactionType = SavingsAccountTransactionType.ESCHEAT;
             break;
+            case 22:
+            	savingsAccountTransactionType = SavingsAccountTransactionType.LOAN_DISBURSEMENT;
+            break;
         }
         return savingsAccountTransactionType;
     }
 
     public boolean isDeposit() {
-        return this.value.equals(SavingsAccountTransactionType.DEPOSIT.getValue());
+        return this.value.equals(SavingsAccountTransactionType.DEPOSIT.getValue()) || isLoanDisbursement() ;
+    }
+    
+    public boolean isLoanDisbursement() {
+        return this.value.equals(SavingsAccountTransactionType.LOAN_DISBURSEMENT.getValue());
     }
 
     public boolean isWithdrawal() {

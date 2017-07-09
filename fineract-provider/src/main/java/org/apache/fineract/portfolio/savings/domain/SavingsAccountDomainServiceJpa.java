@@ -132,6 +132,19 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
         }
         return user;
     }
+    
+    @Transactional
+    @Override
+    public SavingsAccountTransaction handleLoanDeposit(final SavingsAccount account, final DateTimeFormatter fmt,
+            final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail,
+            final boolean isAccountTransfer, final boolean isRegularTransaction) {
+        final SavingsAccountTransactionType savingsAccountTransactionType = SavingsAccountTransactionType.DEPOSIT;
+        
+        final Boolean isLoanDisbursement=true;
+        															
+        return handleDeposit(account, fmt, transactionDate, transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction,
+                savingsAccountTransactionType,isLoanDisbursement);
+    }
 
     @Transactional
     @Override
@@ -140,13 +153,13 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
             final boolean isAccountTransfer, final boolean isRegularTransaction) {
         final SavingsAccountTransactionType savingsAccountTransactionType = SavingsAccountTransactionType.DEPOSIT;
         return handleDeposit(account, fmt, transactionDate, transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction,
-                savingsAccountTransactionType);
+                savingsAccountTransactionType,false);
     }
 
     private SavingsAccountTransaction handleDeposit(final SavingsAccount account, final DateTimeFormatter fmt,
             final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail,
             final boolean isAccountTransfer, final boolean isRegularTransaction,
-            final SavingsAccountTransactionType savingsAccountTransactionType) {
+            final SavingsAccountTransactionType savingsAccountTransactionType,final boolean isLoanDisbursement) {
         AppUser user = getAppUserIfPresent();
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
@@ -173,7 +186,10 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
             account.calculateInterestUsing(mc, today, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd,
                     financialYearBeginningMonth, postInterestOnDate);
         }
-
+        
+       deposit.setLoanDisbursement(isLoanDisbursement);
+       System.out.println("loan disbursement set "+isLoanDisbursement );
+        
         saveTransactionToGenerateTransactionId(deposit);
 
         this.savingsAccountRepository.saveAndFlush(account);
@@ -193,7 +209,7 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
         final boolean isRegularTransaction = true;
         final SavingsAccountTransactionType savingsAccountTransactionType = SavingsAccountTransactionType.DIVIDEND_PAYOUT;
         return handleDeposit(account, fmt, transactionDate, transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction,
-                savingsAccountTransactionType);
+                savingsAccountTransactionType,false);
     }
 
     private Long saveTransactionToGenerateTransactionId(final SavingsAccountTransaction transaction) {

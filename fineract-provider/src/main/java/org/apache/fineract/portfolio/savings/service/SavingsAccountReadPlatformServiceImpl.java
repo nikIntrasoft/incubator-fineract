@@ -768,7 +768,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             sqlBuilder.append("tr.id as transactionId, tr.transaction_type_enum as transactionType, ");
             sqlBuilder.append("tr.transaction_date as transactionDate, tr.amount as transactionAmount,");
             sqlBuilder.append("tr.created_date as submittedOnDate,");
-            sqlBuilder.append("tr.running_balance_derived as runningBalance, tr.is_reversed as reversed,");
+            sqlBuilder.append("tr.running_balance_derived as runningBalance, tr.is_reversed as reversed,tr.isLoanDisbursement as isLoanDisbursement,");
             sqlBuilder.append("fromtran.id as fromTransferId, fromtran.is_reversed as fromTransferReversed,");
             sqlBuilder.append("fromtran.transaction_date as fromTransferDate, fromtran.amount as fromTransferAmount,");
             sqlBuilder.append("fromtran.description as fromTransferDescription,");
@@ -803,7 +803,14 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         public SavingsAccountTransactionData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
             final Long id = rs.getLong("transactionId");
             final int transactionTypeInt = JdbcSupport.getInteger(rs, "transactionType");
-            final SavingsAccountTransactionEnumData transactionType = SavingsEnumerations.transactionType(transactionTypeInt);
+            final boolean isLoanDisbursement=rs.getBoolean("isLoanDisbursement");
+             SavingsAccountTransactionEnumData transactionType = SavingsEnumerations.transactionType(transactionTypeInt);
+            
+            if(isLoanDisbursement)
+            {
+            	transactionType = SavingsEnumerations.transactionType(22);
+            }
+          
 
             final LocalDate date = JdbcSupport.getLocalDate(rs, "transactionDate");
             final LocalDate submittedOnDate = JdbcSupport.getLocalDate(rs, "submittedOnDate");
