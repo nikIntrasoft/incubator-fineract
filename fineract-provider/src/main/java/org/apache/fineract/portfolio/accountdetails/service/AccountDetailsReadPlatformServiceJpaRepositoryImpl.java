@@ -74,11 +74,13 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
         // Check if client exists
         this.clientReadPlatformService.retrieveOne(clientId);
         final String loanwhereClause = " where l.client_id = ?";
+        final String glimLoanClause=" where l.client_id = ? and l.loan_type_enum=4";
         final String savingswhereClause = " where sa.client_id = ? order by sa.status_enum ASC, sa.account_no ASC";
+        final List<LoanAccountSummaryData> glimAccounts = retrieveLoanAccountDetails(glimLoanClause, new Object[] { clientId });
         final List<LoanAccountSummaryData> loanAccounts = retrieveLoanAccountDetails(loanwhereClause, new Object[] { clientId });
         final List<SavingsAccountSummaryData> savingsAccounts = retrieveAccountDetails(savingswhereClause, new Object[] { clientId });
         final List<ShareAccountSummaryData> shareAccounts = retrieveShareAccountDetails(clientId) ;
-        return new AccountSummaryCollectionData(loanAccounts, savingsAccounts, shareAccounts);
+        return new AccountSummaryCollectionData(loanAccounts,glimAccounts, savingsAccounts, shareAccounts);
     }
 
     @Override
@@ -86,9 +88,12 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
         // Check if group exists
         this.groupReadPlatformService.retrieveOne(groupId);
         final String loanWhereClauseForGroup = " where l.group_id = ? and l.client_id is null";
+        final String loanWhereClauseForGroupAndLoanType = " where l.group_id = ? and l.loan_type_enum=4";
         final String loanWhereClauseForMembers = " where l.group_id = ? and l.client_id is not null";
         final String savingswhereClauseForGroup = " where sa.group_id = ? and sa.client_id is null order by sa.status_enum ASC, sa.account_no ASC";
         final String savingswhereClauseForMembers = " where sa.group_id = ? and sa.client_id is not null order by sa.status_enum ASC, sa.account_no ASC";
+        
+        final List<LoanAccountSummaryData> glimAccounts = retrieveLoanAccountDetails(loanWhereClauseForGroupAndLoanType, new Object[] { groupId });
         final List<LoanAccountSummaryData> groupLoanAccounts = retrieveLoanAccountDetails(loanWhereClauseForGroup, new Object[] { groupId });
         final List<SavingsAccountSummaryData> groupSavingsAccounts = retrieveAccountDetails(savingswhereClauseForGroup,
                 new Object[] { groupId });
@@ -96,7 +101,7 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
                 new Object[] { groupId });
         final List<SavingsAccountSummaryData> memberSavingsAccounts = retrieveAccountDetails(savingswhereClauseForMembers,
                 new Object[] { groupId });
-        return new AccountSummaryCollectionData(groupLoanAccounts, groupSavingsAccounts, memberLoanAccounts, memberSavingsAccounts);
+        return new AccountSummaryCollectionData(groupLoanAccounts, glimAccounts,groupSavingsAccounts, memberLoanAccounts, memberSavingsAccounts);
     }
 
     @Override
