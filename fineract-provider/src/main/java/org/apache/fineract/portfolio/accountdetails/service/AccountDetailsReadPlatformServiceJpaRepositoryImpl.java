@@ -124,7 +124,17 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
         final String loanWhereClause = " where l.client_id = ? and l.loan_status_id = 300 ";
         return retrieveLoanAccountDetails(loanWhereClause, new Object[] { clientId });
     }
+    
+    @Override
+    	public List<LoanAccountSummaryData> retrieveLoanAccountDetailsByGroupIdAndGlimAccountNumber(final Long groupId,final String glimAccount) {
+        final LoanAccountSummaryDataMapper rm = new LoanAccountSummaryDataMapper();
+        final String loanWhereClauseForGroupAndLoanType = " where l.group_id =? and glim.account_number="+glimAccount+" and l.loan_type_enum=4";
+        final String sql = "select " + rm.loanAccountSummarySchema() + loanWhereClauseForGroupAndLoanType;
+       // this.columnValidator.validateSqlInjection(rm.loanAccountSummarySchema(), loanWhereClauseForGroupAndLoanType);
+        return this.jdbcTemplate.query(sql, rm, new Object[]{groupId});
+    }
 
+    
     private List<LoanAccountSummaryData> retrieveLoanAccountDetails(final String loanwhereClause, final Object[] inputs) {
         final LoanAccountSummaryDataMapper rm = new LoanAccountSummaryDataMapper();
         final String sql = "select " + rm.loanAccountSummarySchema() + loanwhereClause;
@@ -389,6 +399,7 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
             accountsSummary
                     .append(" l.product_id as productId, lp.name as productName, lp.short_name as shortProductName,")
                     .append(" l.loan_status_id as statusId, l.loan_type_enum as loanType,")
+                    .append(" glim.account_number as parentAccountNumber,")
                     
                     .append("l.principal_disbursed_derived as originalLoan,")
                     .append("l.total_outstanding_derived as loanBalance,")
@@ -423,7 +434,8 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
                     .append(" left join m_appuser abu on abu.id = l.approvedon_userid")
                     .append(" left join m_appuser dbu on dbu.id = l.disbursedon_userid")
                     .append(" left join m_appuser cbu on cbu.id = l.closedon_userid")
-                    .append(" left join m_loan_arrears_aging la on la.loan_id = l.id");
+                    .append(" left join m_loan_arrears_aging la on la.loan_id = l.id")
+            		.append(" left join glim_accounts glim on glim.id=l.glim_id");
 
             return accountsSummary.toString();
         }
@@ -433,6 +445,7 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
 
             final Long id = JdbcSupport.getLong(rs, "id");
             final String accountNo = rs.getString("accountNo");
+            final String parentAccountNumber=rs.getString("parentAccountNumber");
             final String externalId = rs.getString("externalId");
             final Long productId = JdbcSupport.getLong(rs, "productId");
             final String loanProductName = rs.getString("productName");
@@ -495,7 +508,7 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
                     disbursedByFirstname, disbursedByLastname, closedOnDate, closedByUsername, closedByFirstname, closedByLastname,
                     expectedMaturityDate, writtenOffOnDate, closedByUsername, closedByFirstname, closedByLastname);
 
-            return new LoanAccountSummaryData(id, accountNo, externalId, productId, loanProductName, shortLoanProductName, loanStatus, loanType, loanCycle,
+            return new LoanAccountSummaryData(id, accountNo,parentAccountNumber, externalId, productId, loanProductName, shortLoanProductName, loanStatus, loanType, loanCycle,
                     timeline, inArrears,originalLoan,loanBalance,amountPaid);
         }
     }

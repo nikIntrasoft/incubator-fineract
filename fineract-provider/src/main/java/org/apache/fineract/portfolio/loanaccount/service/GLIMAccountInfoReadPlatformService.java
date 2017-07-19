@@ -19,17 +19,30 @@
 
 package org.apache.fineract.portfolio.loanaccount.service;
 
+import java.util.Collection;
+
+import org.apache.fineract.portfolio.loanaccount.data.GLIMContainer;
 import org.apache.fineract.portfolio.loanaccount.data.GroupLoanIndividualMonitoringAccountData;
 
 public interface GLIMAccountInfoReadPlatformService 
 {
 
+	Collection<GroupLoanIndividualMonitoringAccountData> findGlimAccountsByGroupId(String groupId);
 
+	Collection<GroupLoanIndividualMonitoringAccountData> findGlimAccountByGroupId(String groupId);
 
-	GroupLoanIndividualMonitoringAccountData findParentOfChildAccount(String childAccountId);
+	Collection<GLIMContainer> findGlimAccount(Long groupId);
 
-	GroupLoanIndividualMonitoringAccountData findCurrentChildAccount(String parentAccountId);
+	Collection<GroupLoanIndividualMonitoringAccountData> findGlimAccountByGroupIdandAccountNo(String groupId,
+			String accountNo);
 
-	GroupLoanIndividualMonitoringAccountData findCurrentChildAccount();
+	Collection<GLIMContainer> findGlimAccountbyGroupAndAccount(Long groupId, String accountNo);
+
+	Collection<GroupLoanIndividualMonitoringAccountData> findGlimAccountByParentAccountId(String parentAccountIds);
+
+	Collection<GroupLoanIndividualMonitoringAccountData> findGlimAccountsByGLIMId(Long glimId);
+	
+	
+
 
 }

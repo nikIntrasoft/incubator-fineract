@@ -21,8 +21,8 @@ package org.apache.fineract.portfolio.loanaccount.service;
 
 import java.math.BigDecimal;
 
+import org.apache.fineract.portfolio.group.domain.Group;
 import org.apache.fineract.portfolio.loanaccount.domain.GroupLoanIndividualMonitoringAccount;
-import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 
 public interface GLIMAccountInfoWritePlatformService {
 	
@@ -30,8 +30,8 @@ public interface GLIMAccountInfoWritePlatformService {
 
 	
 
-	void addGLIMAccountInfo(String accountNumber, BigDecimal principalAmount, Long childAccountsCount,
-			Boolean isAcceptingChild);
+	void addGLIMAccountInfo(String accountNumber,Group group, BigDecimal principalAmount, Long childAccountsCount,
+			Boolean isAcceptingChild,Integer loanStatus);
 
 	void setIsAcceptingChild(GroupLoanIndividualMonitoringAccount glimAccount);
 

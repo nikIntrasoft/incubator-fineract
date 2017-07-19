@@ -151,6 +151,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
     private final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService;
     private final GLIMAccountInfoWritePlatformService glimAccountInfoWritePlatformService;
     private final GLIMAccountInfoRepository glimRepository;
+    private final LoanRepository loanRepository;
     
 
     @Autowired
@@ -176,7 +177,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
             final FineractEntityToEntityMappingRepository repository, final FineractEntityRelationRepository fineractEntityRelationRepository,
             final EntityDatatableChecksWritePlatformService entityDatatableChecksWritePlatformService,
             final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService,final GLIMAccountInfoWritePlatformService glimAccountInfoWritePlatformService,
-            final GLIMAccountInfoRepository glimRepository
+            final GLIMAccountInfoRepository glimRepository,final LoanRepository loanRepository
             
             ) {
         this.context = context;
@@ -216,6 +217,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
         this.glimAccountInfoReadPlatformService=glimAccountInfoReadPlatformService;
         this.glimAccountInfoWritePlatformService=glimAccountInfoWritePlatformService;
         this.glimRepository=glimRepository;
+        this.loanRepository=loanRepository;
     }
 
     private LoanLifecycleStateMachine defaultLoanLifecycleStateMachine() {
@@ -352,7 +354,9 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
             	 final AccountNumberFormat accountNumberFormat = this.accountNumberFormatRepository.findByAccountType(EntityAccountType.LOAN);
             	// if application is of GLIM type
             	if(newLoanApplication.getLoanType()==4)
-            	{
+            	{    
+            		Group group= this.groupRepository.findOneWithNotFoundDetection(groupId);
+            		System.out.println("*************group id:"+groupId);
             		if(command.booleanObjectValueOfParameterNamed("isParentAccount")!=null)
             		{	
             			System.out.println("**************isParentAccount********************");
@@ -365,11 +369,15 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 				
                 				accountNumber=this.accountNumberGenerator.generate(newLoanApplication, accountNumberFormat);
                     			newLoanApplication.updateAccountNo(accountNumber+"-1");
+                    		
+                    			System.out.println("account number generated:"+newLoanApplication.getAccountNumber());
+                				
+                				System.out.println("group :"+group.getId());
+                    			glimAccountInfoWritePlatformService.addGLIMAccountInfo(accountNumber,group, command.bigDecimalValueOfParameterNamedDefaultToNullIfZero("totalLoan"),Long.valueOf(1),true,LoanStatus.SUBMITTED_AND_PENDING_APPROVAL.getValue());
                     			newLoanApplication.setGlim(glimRepository.findOneByAccountNumber(accountNumber));
                     			 this.loanRepositoryWrapper.save(newLoanApplication);
-                    				System.out.println("account number generated:"+newLoanApplication.getAccountNumber());
-                    			 
-                    			glimAccountInfoWritePlatformService.addGLIMAccountInfo(accountNumber, command.bigDecimalValueOfParameterNamedDefaultToNullIfZero("totalLoan"),Long.valueOf(1),true);
+                    		
+                    			
                     			
                     		/*	(String accountNumber,BigDecimal principalAmount,Long childAccountsCount,
                     					Boolean isAcceptingChild)  */    		
@@ -381,10 +389,13 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 				
                 				accountNumber=this.accountNumberGenerator.generate(newLoanApplication, accountNumberFormat);
                     			newLoanApplication.updateAccountNo(accountNumber+"-1");
-                    			newLoanApplication.setGlim(glimRepository.findOneByAccountNumber(accountNumber));
+                    			
+                    			System.out.println("account number generated:"+newLoanApplication.getAccountNumber());
+                				glimAccountInfoWritePlatformService.addGLIMAccountInfo(accountNumber,group, command.bigDecimalValueOfParameterNamedDefaultToNullIfZero("totalLoan"),Long.valueOf(1),true,
+                						LoanStatus.SUBMITTED_AND_PENDING_APPROVAL.getValue());
+                				newLoanApplication.setGlim(glimRepository.findOneByAccountNumber(accountNumber));
                     			 this.loanRepositoryWrapper.save(newLoanApplication);
-                    				System.out.println("account number generated:"+newLoanApplication.getAccountNumber());
-                    				glimAccountInfoWritePlatformService.addGLIMAccountInfo(accountNumber, command.bigDecimalValueOfParameterNamedDefaultToNullIfZero("totalLoan"),Long.valueOf(1),true);	
+                    				
                     			
                     			
                 			}
@@ -420,10 +431,12 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
             				// if the glim info is empty set the current account as parent
             				accountNumber=this.accountNumberGenerator.generate(newLoanApplication, accountNumberFormat);
                 			newLoanApplication.updateAccountNo(accountNumber+"-1");
+                			glimAccountInfoWritePlatformService.addGLIMAccountInfo(accountNumber,group, command.bigDecimalValueOfParameterNamedDefaultToNullIfZero("totalLoan"),Long.valueOf(1),true,
+                					LoanStatus.SUBMITTED_AND_PENDING_APPROVAL.getValue());
                 			newLoanApplication.setGlim(glimRepository.findOneByAccountNumber(accountNumber));
                 			 this.loanRepositoryWrapper.save(newLoanApplication);
                 			
-                			glimAccountInfoWritePlatformService.addGLIMAccountInfo(accountNumber, command.bigDecimalValueOfParameterNamedDefaultToNullIfZero("totalLoan"),Long.valueOf(1),true);
+                		
             			
                 			
             			}
@@ -1167,7 +1180,44 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
         fromApiJsonDeserializer.validateLoanMultiDisbursementdate(element, baseDataValidator, expectedDisbursementDate, principal);
         if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
     }
-
+    
+    
+    @Transactional
+    @Override
+    public CommandProcessingResult approveGLIMLoanAppication(final Long loanId, final JsonCommand command)
+    {		
+    	
+    	//GroupLoanIndividualMonitoringAccount glimAccount=glimRepository.findOne(loanId);
+    	final Long parentLoanId=loanId;
+    	GroupLoanIndividualMonitoringAccount parentLoan=glimRepository.findOne(parentLoanId);
+    	List<Loan> childLoans=this.loanRepository.findByGlimId(loanId);
+    	
+    	CommandProcessingResult result=null;
+    	int count=0;
+    	for(Loan loan:childLoans)
+    	{
+    		result=approveApplication(loan.getId(),command);	
+    		
+    		if(result.getLoanId()!=null)
+    		{
+    			count++;
+    		// if all the child loans are approved, mark the parent loan as approved
+    			if(count==parentLoan.getChildAccountsCount())
+    			{
+    				parentLoan.setLoanStatus(LoanStatus.APPROVED.getValue());
+    				glimRepository.save(parentLoan);
+    			}
+    			
+    			
+    		}
+    		
+    		
+    	}
+    	
+    	return result;
+    }
+    
+    
     @Transactional
     @Override
     public CommandProcessingResult approveApplication(final Long loanId, final JsonCommand command) {
@@ -1176,8 +1226,12 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
         LocalDate expectedDisbursementDate = null;
 
         this.loanApplicationTransitionApiJsonValidator.validateApproval(command.json());
-
+        
+        
+        					
         final Loan loan = retrieveLoanBy(loanId);
+        
+       
 
         final JsonArray disbursementDataArray = command.arrayOfParameterNamed(LoanApiConstants.disbursementDataParameterName);
 
@@ -1209,6 +1263,8 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
 
         final Map<String, Object> changes = loan.loanApplicationApproval(currentUser, command, disbursementDataArray,
                 defaultLoanLifecycleStateMachine());
+        
+      
 
         entityDatatableChecksWritePlatformService.runTheCheckForProduct(loanId, EntityTables.LOAN.getName(),
                 StatusEnum.APPROVE.getCode().longValue(), EntityTables.LOAN.getForeignKeyColumnNameOnDatatable(), loan.productId());

@@ -25,24 +25,28 @@ import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.portfolio.group.domain.Group;
 
 @Entity
 @Table(name = "glim_accounts", uniqueConstraints = { @UniqueConstraint(columnNames = { "account_number" }, name = "FK_glim_id")})
 public class GroupLoanIndividualMonitoringAccount extends AbstractPersistableCustom<Long> {
 
+	@ManyToOne
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
+	
 	@Column(name = "account_number", nullable = false)
 	private String accountNumber;
-
-	@OneToMany
-	private Set<Loan> childLoan;
 	
 	@Column(name = "principal_amount")
 	private BigDecimal principalAmount;
+	
 	
 	@Column(name = "child_accounts_count")
 	private Long childAccountsCount;
@@ -50,27 +54,43 @@ public class GroupLoanIndividualMonitoringAccount extends AbstractPersistableCus
 	@Column(name = "accepting_child")
 	private Boolean isAcceptingChild;
 
+	@OneToMany
+	private Set<Loan> childLoan;
+	
+	@Column(name = "loan_status_id", nullable = false)
+    private Integer loanStatus;
 	
 	
-	private GroupLoanIndividualMonitoringAccount(String accountNumber,BigDecimal principalAmount,Long childAccountsCount,
-			Boolean isAcceptingChild)
+	
+	private GroupLoanIndividualMonitoringAccount(String accountNumber,Group group,BigDecimal principalAmount,Long childAccountsCount,
+			Boolean isAcceptingChild,Integer loanStatus)
 	{
 		this.accountNumber=accountNumber;
+		this.group=group;
 		this.principalAmount=principalAmount;
 		this.childAccountsCount=childAccountsCount;
 		this.isAcceptingChild=isAcceptingChild;
+		this.loanStatus=loanStatus;
 		
 	}
 	
-	public static GroupLoanIndividualMonitoringAccount getInstance(String accountNumber,BigDecimal principalAmount,Long childAccountsCount,
-			Boolean isAcceptingChild)
+	public static GroupLoanIndividualMonitoringAccount getInstance(String accountNumber,Group group,BigDecimal principalAmount,Long childAccountsCount,
+			Boolean isAcceptingChild,Integer loanStatus)
 	{
-		return new GroupLoanIndividualMonitoringAccount(accountNumber,principalAmount,childAccountsCount,
-				isAcceptingChild);
+		return new GroupLoanIndividualMonitoringAccount(accountNumber,group,principalAmount,childAccountsCount,
+				isAcceptingChild,loanStatus);
 	}
 
 	public String getAccountNumber() {
 		return accountNumber;
+	}
+	
+	public Group getGroup() {
+		return group;
+	}
+
+	public void setGroup(Group group) {
+		this.group = group;
 	}
 
 	public void setAccountNumber(String accountNumber) {
@@ -107,6 +127,14 @@ public class GroupLoanIndividualMonitoringAccount extends AbstractPersistableCus
 
 	public void setIsAcceptingChild(Boolean isAcceptingChild) {
 		this.isAcceptingChild = isAcceptingChild;
+	}
+
+	public Integer getLoanStatus() {
+		return loanStatus;
+	}
+
+	public void setLoanStatus(Integer loanStatus) {
+		this.loanStatus = loanStatus;
 	}
 	
 	

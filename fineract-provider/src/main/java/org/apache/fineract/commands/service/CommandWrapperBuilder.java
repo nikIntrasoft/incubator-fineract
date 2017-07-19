@@ -874,10 +874,28 @@ public class CommandWrapperBuilder {
         this.href = "/loans/" + loanId;
         return this;
     }
+    
+    public CommandWrapperBuilder approveGLIMLoanApplication(final Long glimId) {
+        this.actionName = "APPROVE";
+        this.entityName = "GLIMLOAN";
+        this.entityId = glimId;
+        this.loanId = glimId;
+        this.href = "/loans/" + glimId;
+        return this;
+    }
+    
+    public CommandWrapperBuilder disburseGlimLoanApplication(final Long glimId) {
+        this.actionName = "DISBURSE";
+        this.entityName = "GLIMLOAN";
+        this.entityId = glimId;
+        this.loanId = glimId;
+        this.href = "/loans/" + glimId;
+        return this;
+    }
 
     public CommandWrapperBuilder disburseLoanApplication(final Long loanId) {
         this.actionName = "DISBURSE";
-        this.entityName = "LOAN";
+        this.entityName = "GLIMLOAN";
         this.entityId = loanId;
         this.loanId = loanId;
         this.href = "/loans/" + loanId;

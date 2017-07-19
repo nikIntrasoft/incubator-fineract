@@ -696,56 +696,84 @@ public class LoansApiResource {
 
         return this.toApiJsonSerializer.serialize(result);
     }
+    
+    @POST
+    @Path("glimAccount/{glimId}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String glimStateTransitions(@PathParam("glimId") final Long glimId, @QueryParam("command") final String commandParam,
+          final String apiRequestBodyAsJson) {
+
+        final CommandWrapperBuilder builder = new CommandWrapperBuilder().withJson(apiRequestBodyAsJson);
+
+        CommandProcessingResult result = null;
+        
+        if (is(commandParam, "approve")) {
+            final CommandWrapper commandRequest = builder.approveGLIMLoanApplication(glimId).build();
+            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        }
+        else if (is(commandParam, "disburse")) {
+            final CommandWrapper commandRequest = builder.disburseGlimLoanApplication(glimId).build();
+            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        } 
+        
+        if (result == null) { throw new UnrecognizedQueryParamException("command", commandParam); }
+
+        return this.toApiJsonSerializer.serialize(result);
+    }
 
     @POST
     @Path("{loanId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public String stateTransitions(@PathParam("loanId") final Long loanId, @QueryParam("command") final String commandParam,
-            final String apiRequestBodyAsJson) {
+          final String apiRequestBodyAsJson) {
 
         final CommandWrapperBuilder builder = new CommandWrapperBuilder().withJson(apiRequestBodyAsJson);
 
         CommandProcessingResult result = null;
+        	
+        		  if (is(commandParam, "reject")) {
+        	            final CommandWrapper commandRequest = builder.rejectLoanApplication(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        } else if (is(commandParam, "withdrawnByApplicant")) {
+        	            final CommandWrapper commandRequest = builder.withdrawLoanApplication(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        } else if (is(commandParam, "approve")) {
+        	            final CommandWrapper commandRequest = builder.approveLoanApplication(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        } else if (is(commandParam, "disburse")) {
+        	            final CommandWrapper commandRequest = builder.disburseLoanApplication(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        } else if (is(commandParam, "disburseToSavings")) {
+        	            final CommandWrapper commandRequest = builder.disburseLoanToSavingsApplication(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        }
 
-        if (is(commandParam, "reject")) {
-            final CommandWrapper commandRequest = builder.rejectLoanApplication(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "withdrawnByApplicant")) {
-            final CommandWrapper commandRequest = builder.withdrawLoanApplication(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "approve")) {
-            final CommandWrapper commandRequest = builder.approveLoanApplication(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "disburse")) {
-            final CommandWrapper commandRequest = builder.disburseLoanApplication(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "disburseToSavings")) {
-            final CommandWrapper commandRequest = builder.disburseLoanToSavingsApplication(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        }
+        	        if (is(commandParam, "undoapproval")) {
+        	            final CommandWrapper commandRequest = builder.undoLoanApplicationApproval(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        } else if (is(commandParam, "undodisbursal")) {
+        	            final CommandWrapper commandRequest = builder.undoLoanApplicationDisbursal(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        }else if (is(commandParam, "undolastdisbursal")) {
+        	            final CommandWrapper commandRequest = builder.undoLastDisbursalLoanApplication(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        }
 
-        if (is(commandParam, "undoapproval")) {
-            final CommandWrapper commandRequest = builder.undoLoanApplicationApproval(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "undodisbursal")) {
-            final CommandWrapper commandRequest = builder.undoLoanApplicationDisbursal(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        }else if (is(commandParam, "undolastdisbursal")) {
-            final CommandWrapper commandRequest = builder.undoLastDisbursalLoanApplication(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        }
-
-        if (is(commandParam, "assignloanofficer")) {
-            final CommandWrapper commandRequest = builder.assignLoanOfficer(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "unassignloanofficer")) {
-            final CommandWrapper commandRequest = builder.unassignLoanOfficer(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        } else if (is(commandParam, "recoverGuarantees")) {
-            final CommandWrapper commandRequest = new CommandWrapperBuilder().recoverFromGuarantor(loanId).build();
-            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        }
+        	        if (is(commandParam, "assignloanofficer")) {
+        	            final CommandWrapper commandRequest = builder.assignLoanOfficer(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        } else if (is(commandParam, "unassignloanofficer")) {
+        	            final CommandWrapper commandRequest = builder.unassignLoanOfficer(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        } else if (is(commandParam, "recoverGuarantees")) {
+        	            final CommandWrapper commandRequest = new CommandWrapperBuilder().recoverFromGuarantor(loanId).build();
+        	            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        	        }
+        	      
+        	
+      
 
         if (result == null) { throw new UnrecognizedQueryParamException("command", commandParam); }
 

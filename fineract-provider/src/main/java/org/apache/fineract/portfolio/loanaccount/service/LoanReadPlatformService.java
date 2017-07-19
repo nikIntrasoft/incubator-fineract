@@ -135,4 +135,5 @@ public interface LoanReadPlatformService {
 	LoanAccountData retrieveLoanByLoanAccount(String loanAccountNumber);
 
 	List<LoanAccountData> retrieveGLIMChildLoansByGLIMParentAccount(String parentloanAccountNumber);
+
 }

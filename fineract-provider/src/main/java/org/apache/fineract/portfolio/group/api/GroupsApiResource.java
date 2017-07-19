@@ -73,6 +73,8 @@ import org.apache.fineract.portfolio.group.data.GroupRoleData;
 import org.apache.fineract.portfolio.group.service.CenterReadPlatformService;
 import org.apache.fineract.portfolio.group.service.GroupReadPlatformService;
 import org.apache.fineract.portfolio.group.service.GroupRolesReadPlatformService;
+import org.apache.fineract.portfolio.loanaccount.data.GLIMContainer;
+import org.apache.fineract.portfolio.loanaccount.service.GLIMAccountInfoReadPlatformService;
 import org.apache.fineract.portfolio.meeting.data.MeetingData;
 import org.apache.fineract.portfolio.meeting.service.MeetingReadPlatformService;
 import org.joda.time.LocalDate;
@@ -95,6 +97,7 @@ public class GroupsApiResource {
     private final ToApiJsonSerializer<Object> toApiJsonSerializer;
     private final ToApiJsonSerializer<GroupGeneralData> groupGeneralApiJsonSerializer;
     private final ToApiJsonSerializer<AccountSummaryCollectionData> groupSummaryToApiJsonSerializer;
+    private final ToApiJsonSerializer<GLIMContainer> glimContainerToApiJsonSerializer;
     private final ApiRequestParameterHelper apiRequestParameterHelper;
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
     private final CollectionSheetReadPlatformService collectionSheetReadPlatformService;
@@ -104,6 +107,7 @@ public class GroupsApiResource {
     private final CalendarReadPlatformService calendarReadPlatformService;
     private final MeetingReadPlatformService meetingReadPlatformService;
     private final EntityDatatableChecksReadService entityDatatableChecksReadService;
+    private final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService;
 
     @Autowired
     public GroupsApiResource(final PlatformSecurityContext context, final GroupReadPlatformService groupReadPlatformService,
@@ -111,13 +115,15 @@ public class GroupsApiResource {
             final ToApiJsonSerializer<Object> toApiJsonSerializer,
             final ToApiJsonSerializer<GroupGeneralData> groupTopOfHierarchyApiJsonSerializer,
             final ToApiJsonSerializer<AccountSummaryCollectionData> groupSummaryToApiJsonSerializer,
+            final ToApiJsonSerializer<GLIMContainer> glimContainerToApiJsonSerializer,
             final ApiRequestParameterHelper apiRequestParameterHelper,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
             final CollectionSheetReadPlatformService collectionSheetReadPlatformService, final FromJsonHelper fromJsonHelper,
             final GroupRolesReadPlatformService groupRolesReadPlatformService,
             final AccountDetailsReadPlatformService accountDetailsReadPlatformService,
             final CalendarReadPlatformService calendarReadPlatformService, final MeetingReadPlatformService meetingReadPlatformService,
-            final EntityDatatableChecksReadService entityDatatableChecksReadService) {
+            final EntityDatatableChecksReadService entityDatatableChecksReadService,
+            final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService) {
 
         this.context = context;
         this.groupReadPlatformService = groupReadPlatformService;
@@ -126,6 +132,7 @@ public class GroupsApiResource {
         this.toApiJsonSerializer = toApiJsonSerializer;
         this.groupGeneralApiJsonSerializer = groupTopOfHierarchyApiJsonSerializer;
         this.groupSummaryToApiJsonSerializer = groupSummaryToApiJsonSerializer;
+        this.glimContainerToApiJsonSerializer=glimContainerToApiJsonSerializer;
         this.apiRequestParameterHelper = apiRequestParameterHelper;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         this.collectionSheetReadPlatformService = collectionSheetReadPlatformService;
@@ -135,6 +142,7 @@ public class GroupsApiResource {
         this.calendarReadPlatformService = calendarReadPlatformService;
         this.meetingReadPlatformService = meetingReadPlatformService;
         this.entityDatatableChecksReadService = entityDatatableChecksReadService;
+        this.glimAccountInfoReadPlatformService=glimAccountInfoReadPlatformService;
     }
 
     @GET
@@ -440,5 +448,38 @@ public class GroupsApiResource {
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.groupSummaryToApiJsonSerializer.serialize(settings, groupAccount, GROUP_ACCOUNTS_DATA_PARAMETERS);
+    }
+    
+    
+
+    @GET
+    @Path("{groupId}/glimaccounts")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String retrieveglimAccounts(@PathParam("groupId") final Long groupId, @QueryParam("loanNumber")final String loanNumber,  @Context final UriInfo uriInfo) {
+    	{
+    		this.context.authenticatedUser().validateHasReadPermission("GROUP");
+    		List<GLIMContainer> glimContainer;
+    		if(loanNumber==null)
+    		{
+    			glimContainer=(List)glimAccountInfoReadPlatformService.findGlimAccount(groupId);	
+    		}
+    		else
+    		{
+    		glimContainer=(List)glimAccountInfoReadPlatformService.findGlimAccountbyGroupAndAccount(groupId,loanNumber);	
+    		}
+    		
+
+    		
+    		 final Set<String> GLIM_ACCOUNTS_DATA_PARAMETERS = new HashSet<>(Arrays.asList("groupId", "accountNumber","childGLIMAccounts",
+    	                "memberLoanAccounts", "parentPrincipalAmount"));
+
+    	        final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
+    	        return this.glimContainerToApiJsonSerializer.serialize(settings, glimContainer, GLIM_ACCOUNTS_DATA_PARAMETERS);
+    		
+    	}
+
+    
+    
     }
 }
