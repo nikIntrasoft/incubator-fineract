@@ -1327,6 +1327,42 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 .with(changes) //
                 .build();
     }
+    
+    
+    @Transactional
+    @Override
+    public CommandProcessingResult undoGLIMLoanApplicationApproval(final Long loanId, final JsonCommand command)
+    {		
+    	
+    	//GroupLoanIndividualMonitoringAccount glimAccount=glimRepository.findOne(loanId);
+    	final Long parentLoanId=loanId;
+    	GroupLoanIndividualMonitoringAccount parentLoan=glimRepository.findOne(parentLoanId);
+    	List<Loan> childLoans=this.loanRepository.findByGlimId(loanId);
+    	
+    	CommandProcessingResult result=null;
+    	int count=0;
+    	for(Loan loan:childLoans)
+    	{
+    		result=undoApplicationApproval(loan.getId(),command);	
+    		
+    		if(result.getLoanId()!=null)
+    		{
+    			count++;
+    		// if all the child loans are approved, mark the parent loan as approved
+    			if(count==parentLoan.getChildAccountsCount())
+    			{
+    				parentLoan.setLoanStatus(LoanStatus.SUBMITTED_AND_PENDING_APPROVAL.getValue());
+    				glimRepository.save(parentLoan);
+    			}
+    			
+    			
+    		}
+    		
+    		
+    	}
+    	
+    	return result;
+    }
 
     @Transactional
     @Override

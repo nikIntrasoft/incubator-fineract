@@ -38,4 +38,6 @@ public interface LoanApplicationWritePlatformService {
     CommandProcessingResult applicantWithdrawsFromApplication(Long loanId, JsonCommand command);
 
 	CommandProcessingResult approveGLIMLoanAppication(Long loanId, JsonCommand command);
+
+	CommandProcessingResult undoGLIMLoanApplicationApproval(Long loanId, JsonCommand command);
 }

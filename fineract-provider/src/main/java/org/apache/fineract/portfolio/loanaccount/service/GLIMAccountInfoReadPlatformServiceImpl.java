@@ -32,6 +32,7 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.apache.fineract.portfolio.accountdetails.data.LoanAccountSummaryData;
 import org.apache.fineract.portfolio.accountdetails.service.AccountDetailsReadPlatformService;
 import org.apache.fineract.portfolio.loanaccount.data.GLIMContainer;
+import org.apache.fineract.portfolio.loanaccount.data.GlimRepaymentTemplate;
 import org.apache.fineract.portfolio.loanaccount.data.GroupLoanIndividualMonitoringAccountData;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,6 +185,19 @@ public class GLIMAccountInfoReadPlatformServiceImpl implements GLIMAccountInfoRe
 		return glimAccounts;
 	}
 	
+	@Override
+	public Collection<GlimRepaymentTemplate> findglimRepaymentTemplate(final Long glimId)
+	{
+		this.context.authenticatedUser();
+		
+		GLIMRepaymentMapper rm=new GLIMRepaymentMapper();
+		
+		final String sql="select "+rm.schema()+" where glim.id=?";
+		
+		return this.jdbcTemplate.query(sql, rm, new Object[] {glimId});	
+		
+	}
+	
 	
 	private static final class GLIMMapper implements RowMapper<GroupLoanIndividualMonitoringAccountData> {
 		public String schema() {
@@ -210,5 +224,43 @@ public class GLIMAccountInfoReadPlatformServiceImpl implements GLIMAccountInfoRe
 		}
 	}
 	
+	
+	private static final class GLIMRepaymentMapper implements RowMapper<GlimRepaymentTemplate> {
+		public String schema() {
+			return "glim.id as glimId,loan.group_id as groupId,client.id as clientId,glim.account_number as parentLoanAccountNo,"+
+					"glim.principal_amount as parentPrincipalAmount,loan.id as childLoanId,loan.account_no as childLoanAccountNo,loan.approved_principal as childPrincipalAmount,"+ 
+					"client.display_name as clientName from glim_accounts glim left join m_loan loan on loan.glim_id=glim.id "+
+					"left join m_client client on client.id=loan.client_id";
+		}
+
+		@Override
+		public GlimRepaymentTemplate mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum)
+				throws SQLException {
+			
+		final BigDecimal glimId=rs.getBigDecimal("glimId");	
+		
+		final BigDecimal groupId=rs.getBigDecimal("groupId");
+		
+		final BigDecimal clientId=rs.getBigDecimal("clientId");
+		
+		final String clientName=rs.getString("clientName");
+		
+		final BigDecimal childLoanId=rs.getBigDecimal("childLoanId");
+		
+		final String parentLoanAccountNo=rs.getString("parentLoanAccountNo");
+		
+		final BigDecimal parentPrincipalAmount=rs.getBigDecimal("parentPrincipalAmount");
+		
+		final String childLoanAccountNo=rs.getString("childLoanAccountNo");
+		
+		final BigDecimal childPrincipalAmount=rs.getBigDecimal("childPrincipalAmount");
+		
+	
+		
+		return GlimRepaymentTemplate.getInstance(glimId,groupId,clientId,clientName,childLoanId,parentLoanAccountNo,
+				parentPrincipalAmount,childLoanAccountNo,childPrincipalAmount);
+		
+		}
+	}
 	
 }

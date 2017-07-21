@@ -22,6 +22,7 @@ package org.apache.fineract.portfolio.loanaccount.service;
 import java.util.Collection;
 
 import org.apache.fineract.portfolio.loanaccount.data.GLIMContainer;
+import org.apache.fineract.portfolio.loanaccount.data.GlimRepaymentTemplate;
 import org.apache.fineract.portfolio.loanaccount.data.GroupLoanIndividualMonitoringAccountData;
 
 public interface GLIMAccountInfoReadPlatformService 
@@ -41,6 +42,8 @@ public interface GLIMAccountInfoReadPlatformService
 	Collection<GroupLoanIndividualMonitoringAccountData> findGlimAccountByParentAccountId(String parentAccountIds);
 
 	Collection<GroupLoanIndividualMonitoringAccountData> findGlimAccountsByGLIMId(Long glimId);
+
+	Collection<GlimRepaymentTemplate> findglimRepaymentTemplate(Long glimId);
 	
 	
 

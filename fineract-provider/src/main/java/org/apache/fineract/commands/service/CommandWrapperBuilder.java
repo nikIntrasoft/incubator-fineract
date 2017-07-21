@@ -892,6 +892,32 @@ public class CommandWrapperBuilder {
         this.href = "/loans/" + glimId;
         return this;
     }
+    
+    public CommandWrapperBuilder repaymentGlimLoanApplication(final Long glimId) {
+        this.actionName = "REPAYMENT";
+        this.entityName = "GLIMLOAN";
+        this.entityId = glimId;
+        this.loanId = glimId;
+        this.href = "/loans/" + glimId;
+        return this;
+    }
+    public CommandWrapperBuilder undoGLIMLoanDisbursal(final Long glimId) {
+        this.actionName = "UNDODISBURSAL";
+        this.entityName = "GLIMLOAN";
+        this.entityId = glimId;
+        this.loanId = glimId;
+        this.href = "/loans/" + glimId;
+        return this;
+    }
+    
+    public CommandWrapperBuilder undoGLIMLoanApproval(final Long glimId) {
+        this.actionName = "UNDOAPPROVAL";
+        this.entityName = "GLIMLOAN";
+        this.entityId = glimId;
+        this.loanId = glimId;
+        this.href = "/loans/" + glimId;
+        return this;
+    }
 
     public CommandWrapperBuilder disburseLoanApplication(final Long loanId) {
         this.actionName = "DISBURSE";

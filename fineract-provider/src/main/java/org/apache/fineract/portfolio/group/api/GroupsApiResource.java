@@ -456,17 +456,17 @@ public class GroupsApiResource {
     @Path("{groupId}/glimaccounts")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String retrieveglimAccounts(@PathParam("groupId") final Long groupId, @QueryParam("loanNumber")final String loanNumber,  @Context final UriInfo uriInfo) {
+    public String retrieveglimAccounts(@PathParam("groupId") final Long groupId, @QueryParam("parentLoanAccountNo")final String parentLoanAccountNo,  @Context final UriInfo uriInfo) {
     	{
     		this.context.authenticatedUser().validateHasReadPermission("GROUP");
     		List<GLIMContainer> glimContainer;
-    		if(loanNumber==null)
+    		if(parentLoanAccountNo==null)
     		{
     			glimContainer=(List)glimAccountInfoReadPlatformService.findGlimAccount(groupId);	
     		}
     		else
     		{
-    		glimContainer=(List)glimAccountInfoReadPlatformService.findGlimAccountbyGroupAndAccount(groupId,loanNumber);	
+    			glimContainer=(List)glimAccountInfoReadPlatformService.findGlimAccountbyGroupAndAccount(groupId,parentLoanAccountNo);	
     		}
     		
 
